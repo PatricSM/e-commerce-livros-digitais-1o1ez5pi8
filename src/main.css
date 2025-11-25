@@ -25,6 +25,7 @@
     --popover: 0 0% 100%; /* #ffffff */
     --primary: 15 58% 52%; /* #c96442 */
     --sidebar: 45 20% 95%; /* #f5f4ee */
+    --sidebar-background: var(--sidebar);
     --secondary: 45 20% 89%; /* #e9e6dc */
     --background: 40 20% 97%; /* #faf9f5 */
     --foreground: 48 20% 20%; /* #3d3929 */
@@ -60,6 +61,7 @@
     --popover: 60 2% 18%; /* #30302e */
     --primary: 15 63% 60%; /* #d97757 */
     --sidebar: 30 3% 12%; /* #1f1e1d */
+    --sidebar-background: var(--sidebar);
     --secondary: 40 20% 97%; /* #faf9f5 */
     --background: 60 3% 15%; /* #262624 */
     --foreground: 48 8% 74%; /* #c3c0b6 */
@@ -84,6 +86,19 @@
   section[aria-label='Notifications alt+T'] {
     padding: 0 !important;
     margin: 0 !important;
+  }
+}
+
+@layer components {
+  .admin-sidebar {
+    --sidebar-background: var(--primary);
+    --sidebar-foreground: var(--primary-foreground);
+    --sidebar-primary: var(--primary-foreground);
+    --sidebar-primary-foreground: var(--primary);
+    --sidebar-accent: var(--primary-foreground);
+    --sidebar-accent-foreground: var(--primary);
+    --sidebar-border: var(--primary-foreground);
+    --sidebar-ring: var(--primary-foreground);
   }
 }
 

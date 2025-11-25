@@ -39,16 +39,20 @@ export function AdminSidebar() {
   ]
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4 border-b">
+    <Sidebar className="admin-sidebar border-r-0">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">Admin Panel</span>
+          <BookOpen className="h-6 w-6 text-sidebar-foreground" />
+          <span className="font-bold text-lg text-sidebar-foreground">
+            Admin Panel
+          </span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Gerenciamento</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/70">
+            Gerenciamento
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -69,7 +73,7 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t">
+      <SidebarFooter className="p-4 border-t border-sidebar-border">
         <Button
           variant="outline"
           className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
