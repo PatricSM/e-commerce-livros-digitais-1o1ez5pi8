@@ -1,8 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react'
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  Loader2,
+  Upload,
+  Image as ImageIcon,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -44,6 +53,7 @@ import {
 import { useProductStore } from '@/stores/useProductStore'
 import { toast } from 'sonner'
 import { Product } from '@/types'
+import { uploadService } from '@/services/upload'
 
 const productSchema = z.object({
   title: z.string().min(2, 'Título deve ter pelo menos 2 caracteres'),
@@ -53,7 +63,7 @@ const productSchema = z.object({
     .string()
     .min(10, 'Descrição deve ter pelo menos 10 caracteres'),
   category: z.string().min(2, 'Categoria é obrigatória'),
-  coverUrl: z.string().url('URL da imagem inválida'),
+  coverUrl: z.string().optional(),
 })
 
 export default function ProductManagement() {
@@ -69,6 +79,9 @@ export default function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchProducts()
@@ -86,19 +99,67 @@ export default function ProductManagement() {
     },
   })
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      const objectUrl = URL.createObjectURL(file)
+      setPreviewUrl(objectUrl)
+    }
+  }
+
+  const clearFile = () => {
+    setSelectedFile(null)
+    setPreviewUrl(editingProduct?.coverUrl || null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
+    // Validate cover image presence
+    if (!values.coverUrl && !selectedFile && !editingProduct) {
+      form.setError('coverUrl', { message: 'A imagem de capa é obrigatória' })
+      return
+    }
+
     setIsSubmitting(true)
     try {
+      let finalCoverUrl = values.coverUrl
+
+      if (selectedFile) {
+        try {
+          finalCoverUrl = await uploadService.uploadCover(selectedFile)
+        } catch (error: any) {
+          toast.error(`Erro no upload: ${error.message}`)
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      if (!finalCoverUrl) {
+        toast.error('Erro: URL da imagem não disponível')
+        setIsSubmitting(false)
+        return
+      }
+
+      const productData = {
+        ...values,
+        coverUrl: finalCoverUrl,
+      }
+
       if (editingProduct) {
-        await updateProduct(editingProduct.id, values)
+        await updateProduct(editingProduct.id, productData)
         toast.success('Produto atualizado com sucesso!')
       } else {
-        await addProduct(values)
+        await addProduct(productData as any)
         toast.success('Produto cadastrado com sucesso!')
       }
       setIsDialogOpen(false)
       form.reset()
       setEditingProduct(null)
+      setSelectedFile(null)
+      setPreviewUrl(null)
     } catch (error) {
       // Error is handled in store
     } finally {
@@ -108,6 +169,8 @@ export default function ProductManagement() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
+    setPreviewUrl(product.coverUrl)
+    setSelectedFile(null)
     form.reset({
       title: product.title,
       author: product.author,
@@ -130,6 +193,8 @@ export default function ProductManagement() {
 
   const handleAddNew = () => {
     setEditingProduct(null)
+    setPreviewUrl(null)
+    setSelectedFile(null)
     form.reset({
       title: '',
       author: '',
@@ -236,19 +301,71 @@ export default function ProductManagement() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="coverUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL da Capa</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+                <div className="space-y-2">
+                  <FormLabel>Capa do Livro</FormLabel>
+                  <div className="flex flex-col gap-4">
+                    {previewUrl ? (
+                      <div className="relative w-32 h-48 rounded-md overflow-hidden border border-border group">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={clearFile}
+                          className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-32 h-48 rounded-md border border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/50">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full sm:w-auto"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {previewUrl ? 'Alterar Imagem' : 'Selecionar Imagem'}
+                      </Button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="coverUrl"
+                      render={({ field }) => (
+                        <FormItem className="hidden">
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {form.formState.errors.coverUrl &&
+                      !selectedFile &&
+                      !previewUrl && (
+                        <p className="text-sm font-medium text-destructive">
+                          {form.formState.errors.coverUrl.message}
+                        </p>
+                      )}
+                  </div>
+                </div>
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -312,7 +429,18 @@ export default function ProductManagement() {
             ) : (
               filteredProducts.map((product) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.title}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-8 rounded overflow-hidden bg-muted">
+                        <img
+                          src={product.coverUrl}
+                          alt={product.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      {product.title}
+                    </div>
+                  </TableCell>
                   <TableCell>{product.author}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell className="text-right">
