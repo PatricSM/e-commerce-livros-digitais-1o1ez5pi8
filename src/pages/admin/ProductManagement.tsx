@@ -83,9 +83,11 @@ export default function ProductManagement() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Ensure fetchProducts is only called once on mount
   useEffect(() => {
     fetchProducts()
-  }, [fetchProducts])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),

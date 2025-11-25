@@ -20,6 +20,9 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   error: null,
 
   fetchProducts: async () => {
+    // Avoid fetching if already loading to prevent race conditions
+    if (get().isLoading) return
+
     set({ isLoading: true, error: null })
     try {
       const products = await productService.getProducts()

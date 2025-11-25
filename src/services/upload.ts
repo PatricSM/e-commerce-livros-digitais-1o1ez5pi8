@@ -5,12 +5,9 @@ export const uploadService = {
     const formData = new FormData()
     formData.append('file', file)
 
-    const { data, error } = await supabase.functions.invoke(
-      'storage-upload-produtos',
-      {
-        body: formData,
-      },
-    )
+    const { data, error } = await supabase.functions.invoke('storage-upload', {
+      body: formData,
+    })
 
     if (error) {
       console.error('Edge function error:', error)
