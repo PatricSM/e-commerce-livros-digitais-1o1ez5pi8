@@ -11,12 +11,18 @@ export const uploadService = {
 
     if (error) {
       console.error('Edge function error:', error)
-      throw new Error('Falha ao conectar com o servidor de upload.')
+      throw new Error(
+        error.message || 'Falha na comunicação com o serviço de upload.',
+      )
     }
 
     if (data?.error) {
       console.error('Upload error:', data.error)
-      throw new Error(data.error || 'Erro ao fazer upload do arquivo.')
+      throw new Error(data.error || 'Erro ao processar o upload do arquivo.')
+    }
+
+    if (!data?.url) {
+      throw new Error('URL do arquivo não retornada pelo servidor.')
     }
 
     return data.url
