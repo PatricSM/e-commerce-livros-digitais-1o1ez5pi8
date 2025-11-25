@@ -5,7 +5,7 @@ export const uploadService = {
     const formData = new FormData()
     formData.append('file', file)
 
-    const { data, error } = await supabase.functions.invoke('file-upload', {
+    const { data, error } = await supabase.functions.invoke('uploader', {
       body: formData,
     })
 
