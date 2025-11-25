@@ -1,18 +1,15 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { ShoppingCart, Check, Star, Loader2 } from 'lucide-react'
+import { Check, Star, Loader2, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ProductCard } from '@/components/ProductCard'
 import { useProductStore } from '@/stores/useProductStore'
-import { useCartStore } from '@/stores/useCartStore'
-import { toast } from 'sonner'
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>()
   const { getProduct, products, fetchProducts, isLoading } = useProductStore()
-  const addItem = useCartStore((state) => state.addItem)
 
   useEffect(() => {
     if (products.length === 0) {
@@ -41,11 +38,6 @@ export default function ProductDetails() {
   const relatedProducts = products
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4)
-
-  const handleAddToCart = () => {
-    addItem(product)
-    toast.success(`${product.title} adicionado ao carrinho!`)
-  }
 
   return (
     <div className="container px-4 md:px-6 py-8 md:py-12">
@@ -78,13 +70,21 @@ export default function ProductDetails() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="flex-1" onClick={handleAddToCart}>
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Adicionar ao Carrinho
-            </Button>
-            <Button size="lg" variant="outline" className="flex-1">
-              Comprar Agora
-            </Button>
+            {product.kiwifyCheckoutLink ? (
+              <Button size="lg" className="flex-1" asChild>
+                <a
+                  href={product.kiwifyCheckoutLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Comprar Agora <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            ) : (
+              <Button size="lg" className="flex-1" disabled>
+                Indisponível
+              </Button>
+            )}
           </div>
 
           <div className="space-y-4 text-sm text-muted-foreground">

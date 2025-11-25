@@ -66,6 +66,11 @@ const productSchema = z.object({
   category: z.string().min(2, 'Categoria é obrigatória'),
   coverUrl: z.string().optional(),
   fileUrl: z.string().optional(),
+  kiwifyCheckoutLink: z
+    .string()
+    .url('URL inválida')
+    .optional()
+    .or(z.literal('')),
 })
 
 export default function ProductManagement() {
@@ -107,6 +112,7 @@ export default function ProductManagement() {
       category: '',
       coverUrl: '',
       fileUrl: '',
+      kiwifyCheckoutLink: '',
     },
   })
 
@@ -220,6 +226,7 @@ export default function ProductManagement() {
       category: product.category,
       coverUrl: product.coverUrl,
       fileUrl: product.fileUrl || '',
+      kiwifyCheckoutLink: product.kiwifyCheckoutLink || '',
     })
     setIsDialogOpen(true)
   }
@@ -246,6 +253,7 @@ export default function ProductManagement() {
       category: '',
       coverUrl: '',
       fileUrl: '',
+      kiwifyCheckoutLink: '',
     })
     setIsDialogOpen(true)
   }
@@ -340,6 +348,23 @@ export default function ProductManagement() {
                       <FormLabel>Categoria</FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: Romance" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="kiwifyCheckoutLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Link de Checkout Kiwify</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://pay.kiwify.com.br/..."
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, ShoppingCart, Menu, BookOpen } from 'lucide-react'
+import { Search, Menu, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import {
   Sheet,
   SheetContent,
@@ -11,12 +10,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { useCartStore } from '@/stores/useCartStore'
-import { cn } from '@/lib/utils'
 
 export function Header() {
   const navigate = useNavigate()
-  const { items, toggleCart } = useCartStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -84,24 +80,6 @@ export function Header() {
               <span className="sr-only">Buscar</span>
             </Button>
           </form>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative"
-            onClick={toggleCart}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {items.length > 0 && (
-              <Badge
-                variant="default"
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full p-0 text-[10px] animate-in zoom-in"
-              >
-                {items.length}
-              </Badge>
-            )}
-            <span className="sr-only">Carrinho</span>
-          </Button>
 
           {/* Mobile Menu */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

@@ -10,11 +10,8 @@ export interface Product {
   pages?: number
   language?: string
   publisher?: string
+  kiwifyCheckoutLink?: string
   createdAt: string
-}
-
-export interface CartItem extends Product {
-  quantity: number
 }
 
 export interface User {

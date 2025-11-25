@@ -1,7 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
-import { CartSheet } from '@/components/CartSheet'
 
 export default function PublicLayout() {
   return (
@@ -11,7 +10,6 @@ export default function PublicLayout() {
         <Outlet />
       </main>
       <Footer />
-      <CartSheet />
     </div>
   )
 }

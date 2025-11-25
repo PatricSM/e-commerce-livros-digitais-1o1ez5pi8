@@ -72,6 +72,7 @@ function mapToProduct(row: any): Product {
     pages: row.pages,
     language: row.language,
     publisher: row.publisher,
+    kiwifyCheckoutLink: row.kiwify_checkout_link,
     createdAt: row.created_at,
   }
 }
@@ -88,6 +89,7 @@ function mapToDbProduct(product: Omit<Product, 'id' | 'createdAt'>) {
     pages: product.pages,
     language: product.language,
     publisher: product.publisher,
+    kiwify_checkout_link: product.kiwifyCheckoutLink,
   }
 }
 
@@ -104,5 +106,7 @@ function mapToDbProductPartial(product: Partial<Product>) {
   if (product.pages !== undefined) dbProduct.pages = product.pages
   if (product.language !== undefined) dbProduct.language = product.language
   if (product.publisher !== undefined) dbProduct.publisher = product.publisher
+  if (product.kiwifyCheckoutLink !== undefined)
+    dbProduct.kiwify_checkout_link = product.kiwifyCheckoutLink
   return dbProduct
 }
