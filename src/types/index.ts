@@ -1,0 +1,25 @@
+export interface Product {
+  id: string
+  title: string
+  author: string
+  price: number
+  description: string
+  category: string
+  coverUrl: string
+  fileUrl?: string
+  pages?: number
+  language?: string
+  publisher?: string
+  createdAt: string
+}
+
+export interface CartItem extends Product {
+  quantity: number
+}
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'user'
+}
