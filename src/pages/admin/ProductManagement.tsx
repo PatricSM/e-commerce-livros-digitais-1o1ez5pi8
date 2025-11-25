@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   FileText,
   X,
+  Info,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,6 +52,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useProductStore } from '@/stores/useProductStore'
 import { toast } from 'sonner'
 import { Product } from '@/types'
@@ -359,7 +366,23 @@ export default function ProductManagement() {
                   name="kiwifyCheckoutLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Link de Checkout Kiwify</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormLabel>Link de Checkout Kiwify</FormLabel>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>
+                                Importante: O link deve conter o ID do produto
+                                Kiwify para que o envio automático do ebook
+                                funcione após a compra.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       <FormControl>
                         <Input
                           placeholder="https://pay.kiwify.com.br/..."

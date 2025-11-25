@@ -46,10 +46,12 @@ export const onRequest = async (req: Request) => {
     let finalAmount = 0
     if (amount) {
       const numAmount = Number(amount)
-      if (Number.isInteger(numAmount)) {
-        finalAmount = numAmount / 100
-      } else {
+      // If it contains a dot, assume it's already float (e.g. 29.90)
+      // If it doesn't, assume it's cents (e.g. 2990)
+      if (String(amount).includes('.')) {
         finalAmount = numAmount
+      } else {
+        finalAmount = numAmount / 100
       }
     }
 
@@ -74,7 +76,6 @@ export const onRequest = async (req: Request) => {
     }
 
     // 1. Upsert sale into database
-    // We removed ignoreDuplicates: true to allow status updates (e.g. pending -> paid)
     const { error: upsertError } = await supabaseClient
       .from('kiwify_sales')
       .upsert(
@@ -119,6 +120,7 @@ export const onRequest = async (req: Request) => {
 
         // Try to find product by matching Kiwify Product ID in the checkout link
         // This assumes the user put the Kiwify checkout link in the product definition
+        // We use ilike to match the ID anywhere in the link (e.g. https://pay.kiwify.com.br/ID)
         const { data: productData, error: productError } = await supabaseClient
           .from('products')
           .select('title, file_url')
@@ -156,7 +158,7 @@ export const onRequest = async (req: Request) => {
           }
         } else {
           console.warn(
-            `Product file not found for Kiwify Product ID: ${productId}. Make sure the product exists and has a matching checkout link.`,
+            `Product file not found for Kiwify Product ID: ${productId}. Make sure the product exists and has a matching checkout link containing the ID.`,
           )
         }
       } else {

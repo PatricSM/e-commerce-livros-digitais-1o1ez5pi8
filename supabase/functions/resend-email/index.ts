@@ -11,6 +11,7 @@ interface EmailPayload {
 }
 
 export const onRequest = async (req: Request) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -30,7 +31,7 @@ export const onRequest = async (req: Request) => {
       purchaseAmount,
     }: EmailPayload = await req.json()
 
-    if (!to || !productLink) {
+    if (!to || !productLink || !productName) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         {
@@ -41,21 +42,34 @@ export const onRequest = async (req: Request) => {
     }
 
     const htmlContent = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1>Olá, ${buyerName}!</h1>
-        <p>Obrigado por sua compra de <strong>${productName}</strong>.</p>
-        <p>Seu pagamento de R$ ${purchaseAmount.toFixed(2)} foi confirmado.</p>
-        <p>Você pode baixar seu produto digital clicando no botão abaixo:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${productLink}" style="background-color: #c96442; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-            Baixar Agora
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #c96442;">Sua compra foi confirmada!</h1>
+        </div>
+        
+        <p>Olá, <strong>${buyerName}</strong>!</p>
+        
+        <p>Obrigado por adquirir <strong>${productName}</strong>.</p>
+        
+        <p>Seu pagamento de <strong>R$ ${purchaseAmount.toFixed(2)}</strong> foi processado com sucesso.</p>
+        
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center;">
+          <p style="margin-bottom: 20px; font-size: 16px;">Seu produto digital já está disponível para download:</p>
+          <a href="${productLink}" style="background-color: #c96442; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
+            Baixar Meu Livro
           </a>
         </div>
-        <p>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
-        <p><a href="${productLink}">${productLink}</a></p>
-        <hr />
-        <p style="font-size: 12px; color: #666;">
-          Este é um e-mail automático. Por favor, não responda.
+        
+        <p style="font-size: 14px;">Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:</p>
+        <p style="font-size: 12px; color: #666; word-break: break-all;">
+          <a href="${productLink}" style="color: #c96442;">${productLink}</a>
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+        
+        <p style="font-size: 12px; color: #888; text-align: center;">
+          Livraria Digital - Todos os direitos reservados.<br>
+          Este é um e-mail automático, por favor não responda.
         </p>
       </div>
     `
