@@ -1,11 +1,16 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Star, TrendingUp, Book } from 'lucide-react'
+import { ArrowRight, Star, TrendingUp, Book, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProductCard } from '@/components/ProductCard'
 import { useProductStore } from '@/stores/useProductStore'
 
 const Index = () => {
-  const products = useProductStore((state) => state.products)
+  const { products, fetchProducts, isLoading } = useProductStore()
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   // Get latest 4 products
   const featuredProducts = [...products]
@@ -75,17 +80,25 @@ const Index = () => {
             Confira as últimas adições à nossa biblioteca digital.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className={`animate-fade-in-up`}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className={`animate-fade-in-up`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex justify-center mt-10">
           <Button variant="outline" size="lg" asChild>
             <Link to="/catalogo">Ver Todos os Livros</Link>

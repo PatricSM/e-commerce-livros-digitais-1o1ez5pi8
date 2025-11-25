@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Loader2, Lock } from 'lucide-react'
+import { Loader2, Lock, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -21,20 +21,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 
 const formSchema = z.object({
   email: z.string().email({ message: 'E-mail inválido' }),
-  password: z.string().min(1, { message: 'Senha é obrigatória' }),
+  password: z
+    .string()
+    .min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
 })
 
 export default function Login() {
   const navigate = useNavigate()
-  const login = useAuthStore((state) => state.login)
+  const { signIn, signUp, user, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/admin/dashboard')
+    }
+  }, [user, loading, navigate])
+
+  const formLogin = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
@@ -42,24 +51,46 @@ export default function Login() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const formRegister = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
+  async function onLogin(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      if (values.email === 'admin@admin.com' && values.password === 'admin') {
-        login({
-          id: '1',
-          name: 'Administrador',
-          email: values.email,
-          role: 'admin',
-        })
-        toast.success('Login realizado com sucesso!')
-        navigate('/admin/dashboard')
-      } else {
-        toast.error('Credenciais inválidas. Tente admin@admin.com / admin')
-      }
-    }, 1500)
+    const { error } = await signIn(values.email, values.password)
+    setIsLoading(false)
+
+    if (error) {
+      toast.error('Erro ao entrar: ' + error.message)
+    } else {
+      toast.success('Login realizado com sucesso!')
+      navigate('/admin/dashboard')
+    }
+  }
+
+  async function onRegister(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
+    const { error } = await signUp(values.email, values.password)
+    setIsLoading(false)
+
+    if (error) {
+      toast.error('Erro ao registrar: ' + error.message)
+    } else {
+      toast.success('Registro realizado! Verifique seu e-mail ou entre.')
+      navigate('/admin/dashboard')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -75,56 +106,119 @@ export default function Login() {
             Acesso Administrativo
           </CardTitle>
           <CardDescription>
-            Entre com suas credenciais para acessar o painel
+            Gerencie seus produtos e configurações
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>E-mail</FormLabel>
-                    <FormControl>
-                      <Input placeholder="admin@admin.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Senha</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="admin" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </form>
-          </Form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>
-              Dica: Use <strong>admin@admin.com</strong> e senha{' '}
-              <strong>admin</strong>
-            </p>
-          </div>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Registrar</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <Form {...formLogin}>
+                <form
+                  onSubmit={formLogin.handleSubmit(onLogin)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={formLogin.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>E-mail</FormLabel>
+                        <FormControl>
+                          <Input placeholder="seu@email.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={formLogin.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="******"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Entrando...
+                      </>
+                    ) : (
+                      'Entrar'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+
+            <TabsContent value="register">
+              <Form {...formRegister}>
+                <form
+                  onSubmit={formRegister.handleSubmit(onRegister)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={formRegister.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>E-mail</FormLabel>
+                        <FormControl>
+                          <Input placeholder="seu@email.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={formRegister.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="******"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Registrando...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Criar Conta
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

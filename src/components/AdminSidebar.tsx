@@ -12,17 +12,22 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
 } from '@/components/ui/sidebar'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 export function AdminSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const logout = useAuthStore((state) => state.logout)
+  const { signOut } = useAuth()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/admin/login')
+  const handleLogout = async () => {
+    const { error } = await signOut()
+    if (error) {
+      toast.error('Erro ao sair')
+    } else {
+      navigate('/admin/login')
+    }
   }
 
   const menuItems = [

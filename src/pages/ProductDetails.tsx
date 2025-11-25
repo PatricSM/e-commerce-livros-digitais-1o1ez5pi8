@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { ShoppingCart, Check, Star } from 'lucide-react'
+import { ShoppingCart, Check, Star, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -10,10 +11,24 @@ import { toast } from 'sonner'
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>()
-  const { getProduct, products } = useProductStore()
+  const { getProduct, products, fetchProducts, isLoading } = useProductStore()
   const addItem = useCartStore((state) => state.addItem)
 
+  useEffect(() => {
+    if (products.length === 0) {
+      fetchProducts()
+    }
+  }, [fetchProducts, products.length])
+
   const product = getProduct(id || '')
+
+  if (isLoading && !product) {
+    return (
+      <div className="container py-20 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   if (!product) {
     return (

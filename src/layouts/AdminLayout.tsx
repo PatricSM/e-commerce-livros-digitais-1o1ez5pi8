@@ -2,19 +2,28 @@ import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AdminSidebar } from '@/components/AdminSidebar'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
+import { Loader2 } from 'lucide-react'
 
 export default function AdminLayout() {
-  const { isAuthenticated } = useAuthStore()
+  const { user, loading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !user) {
       navigate('/admin/login')
     }
-  }, [isAuthenticated, navigate])
+  }, [user, loading, navigate])
 
-  if (!isAuthenticated) return null
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-muted/20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   return (
     <SidebarProvider>
@@ -26,6 +35,7 @@ export default function AdminLayout() {
             <div className="w-full flex-1">
               <h1 className="text-lg font-semibold">Painel Administrativo</h1>
             </div>
+            <div className="text-sm text-muted-foreground">{user.email}</div>
           </header>
           <div className="flex-1 overflow-auto p-4 md:p-6">
             <Outlet />

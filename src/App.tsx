@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { AuthProvider } from '@/hooks/use-auth'
 import Index from './pages/Index'
 import Catalog from './pages/Catalog'
 import ProductDetails from './pages/ProductDetails'
@@ -20,27 +21,29 @@ const App = () => (
   <BrowserRouter
     future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
   >
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <Routes>
-        {/* Public Routes */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<Index />} />
-          <Route path="/catalogo" element={<Catalog />} />
-          <Route path="/produto/:id" element={<ProductDetails />} />
-        </Route>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/catalogo" element={<Catalog />} />
+            <Route path="/produto/:id" element={<ProductDetails />} />
+          </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<Login />} />
-        <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/produtos" element={<ProductManagement />} />
-        </Route>
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<Login />} />
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/produtos" element={<ProductManagement />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </TooltipProvider>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </AuthProvider>
   </BrowserRouter>
 )
 

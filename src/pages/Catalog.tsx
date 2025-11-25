@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Filter, X } from 'lucide-react'
+import { Filter, X, Loader2 } from 'lucide-react'
 import { ProductCard } from '@/components/ProductCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,7 +19,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
 } from '@/components/ui/sheet'
 import { Slider } from '@/components/ui/slider'
 import { useProductStore } from '@/stores/useProductStore'
@@ -27,13 +26,17 @@ import { Separator } from '@/components/ui/separator'
 
 export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const products = useProductStore((state) => state.products)
+  const { products, fetchProducts, isLoading } = useProductStore()
 
   // Filter States
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 200])
   const [sortOption, setSortOption] = useState('newest')
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   // Initialize from URL params
   useEffect(() => {
@@ -49,7 +52,8 @@ export default function Catalog() {
 
   // Derived Data
   const categories = Array.from(new Set(products.map((p) => p.category)))
-  const maxPrice = Math.max(...products.map((p) => p.price), 100)
+  const maxPrice =
+    products.length > 0 ? Math.max(...products.map((p) => p.price), 100) : 200
 
   const filteredProducts = useMemo(() => {
     return products
@@ -218,7 +222,11 @@ export default function Catalog() {
             </div>
           </div>
 
-          {filteredProducts.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-lg text-muted-foreground">
                 Nenhum livro encontrado com os filtros selecionados.

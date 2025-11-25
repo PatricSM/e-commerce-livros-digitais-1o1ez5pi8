@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -57,11 +57,22 @@ const productSchema = z.object({
 })
 
 export default function ProductManagement() {
-  const { products, addProduct, updateProduct, deleteProduct } =
-    useProductStore()
+  const {
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    fetchProducts,
+    isLoading,
+  } = useProductStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
@@ -75,17 +86,24 @@ export default function ProductManagement() {
     },
   })
 
-  const onSubmit = (values: z.infer<typeof productSchema>) => {
-    if (editingProduct) {
-      updateProduct(editingProduct.id, values)
-      toast.success('Produto atualizado com sucesso!')
-    } else {
-      addProduct(values)
-      toast.success('Produto cadastrado com sucesso!')
+  const onSubmit = async (values: z.infer<typeof productSchema>) => {
+    setIsSubmitting(true)
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, values)
+        toast.success('Produto atualizado com sucesso!')
+      } else {
+        await addProduct(values)
+        toast.success('Produto cadastrado com sucesso!')
+      }
+      setIsDialogOpen(false)
+      form.reset()
+      setEditingProduct(null)
+    } catch (error) {
+      // Error is handled in store
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsDialogOpen(false)
-    form.reset()
-    setEditingProduct(null)
   }
 
   const handleEdit = (product: Product) => {
@@ -101,9 +119,13 @@ export default function ProductManagement() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id)
-    toast.success('Produto removido com sucesso!')
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct(id)
+      toast.success('Produto removido com sucesso!')
+    } catch (error) {
+      // Error handled in store
+    }
   }
 
   const handleAddNew = () => {
@@ -241,7 +263,16 @@ export default function ProductManagement() {
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit">Salvar</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      'Salvar'
+                    )}
+                  </Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -261,7 +292,15 @@ export default function ProductManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  <div className="flex justify-center items-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredProducts.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
