@@ -39,16 +39,20 @@ export function AdminSidebar() {
   ]
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4 border-b">
+    <Sidebar className="border-r border-sidebar-border">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">Admin Panel</span>
+          <span className="font-bold text-lg text-sidebar-foreground">
+            Admin Panel
+          </span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Gerenciamento</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/70">
+            Gerenciamento
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -57,6 +61,7 @@ export function AdminSidebar() {
                     asChild
                     isActive={location.pathname === item.url}
                     tooltip={item.title}
+                    className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   >
                     <Link to={item.url}>
                       <item.icon />
@@ -69,10 +74,10 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t">
+      <SidebarFooter className="p-4 border-t border-sidebar-border">
         <Button
           variant="outline"
-          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 border-sidebar-border"
           onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />

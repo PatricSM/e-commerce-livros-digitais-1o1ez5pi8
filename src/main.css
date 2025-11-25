@@ -9,7 +9,6 @@
 
 @layer base {
   :root {
-    --card: 0 0% 98%; /* #faf9f5 converted to hsl approx 40 15 97 but using standard hsl for simplicity or hex if tailwind config supports it directly via variable reference. The prompt gave hex, I will use the hex values in the variable definitions as requested in the prompt which overrides the previous css */
     --card: 40 20% 97%; /* #faf9f5 */
     --ring: 15 58% 52%; /* #c96442 */
     --input: 50 6% 68%; /* #b4b2a7 */
@@ -24,21 +23,21 @@
     --chart-5: 18 60% 44%; /* #b4552d */
     --popover: 0 0% 100%; /* #ffffff */
     --primary: 15 58% 52%; /* #c96442 */
-    --sidebar: 45 20% 95%; /* #f5f4ee */
+    --sidebar: 40 20% 97%; /* Matches background */
     --secondary: 45 20% 89%; /* #e9e6dc */
     --background: 40 20% 97%; /* #faf9f5 */
     --foreground: 48 20% 20%; /* #3d3929 */
     --destructive: 60 4% 8%; /* #141413 */
     --sidebar-ring: 0 0% 71%; /* #b5b5b5 */
     --sidebar-accent: 45 20% 89%; /* #e9e6dc */
-    --sidebar-border: 0 0% 92%; /* #ebebeb */
+    --sidebar-border: 45 8% 85%; /* Matches border */
     --card-foreground: 60 4% 8%; /* #141413 */
     --sidebar-primary: 15 58% 52%; /* #c96442 */
     --muted-foreground: 48 3% 50%; /* #83827d */
     --accent-foreground: 48 20% 13%; /* #28261b */
     --popover-foreground: 48 20% 13%; /* #28261b */
     --primary-foreground: 0 0% 100%; /* #ffffff */
-    --sidebar-foreground: 48 3% 23%; /* #3d3d3a */
+    --sidebar-foreground: 48 20% 20%; /* Matches foreground for better contrast */
     --secondary-foreground: 48 9% 30%; /* #535146 */
     --destructive-foreground: 0 0% 100%; /* #ffffff */
     --sidebar-accent-foreground: 0 0% 20%; /* #343434 */
@@ -59,21 +58,21 @@
     --chart-5: 18 60% 44%; /* #b4552d */
     --popover: 60 2% 18%; /* #30302e */
     --primary: 15 63% 60%; /* #d97757 */
-    --sidebar: 30 3% 12%; /* #1f1e1d */
+    --sidebar: 60 3% 15%; /* Matches background */
     --secondary: 40 20% 97%; /* #faf9f5 */
     --background: 60 3% 15%; /* #262624 */
     --foreground: 48 8% 74%; /* #c3c0b6 */
     --destructive: 0 84% 60%; /* #ef4444 */
     --sidebar-ring: 0 0% 71%; /* #b5b5b5 */
     --sidebar-accent: 60 5% 6%; /* #0f0f0e */
-    --sidebar-border: 0 0% 92%; /* #ebebeb */
+    --sidebar-border: 60 5% 23%; /* Matches border */
     --card-foreground: 40 20% 97%; /* #faf9f5 */
     --sidebar-primary: 0 0% 20%; /* #343434 */
     --muted-foreground: 48 8% 69%; /* #b7b5a9 */
     --accent-foreground: 45 20% 95%; /* #f5f4ee */
     --popover-foreground: 48 5% 89%; /* #e5e5e2 */
     --primary-foreground: 0 0% 100%; /* #ffffff */
-    --sidebar-foreground: 48 8% 74%; /* #c3c0b6 */
+    --sidebar-foreground: 60 5% 90%; /* High contrast text */
     --secondary-foreground: 60 2% 18%; /* #30302e */
     --destructive-foreground: 0 0% 100%; /* #ffffff */
     --sidebar-accent-foreground: 48 8% 74%; /* #c3c0b6 */
