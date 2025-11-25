@@ -19,3 +19,19 @@ export interface User {
   email: string
   role?: string
 }
+
+export interface Sale {
+  id: string
+  kiwifyTransactionId: string
+  productId: string
+  productName: string
+  amount: number
+  currency: string
+  buyerEmail: string
+  buyerName: string
+  purchaseDate: string
+  status: string
+  paymentMethod: string
+  rawPayload: any
+  createdAt: string
+}

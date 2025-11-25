@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   Card,
   CardContent,
@@ -6,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useProductStore } from '@/stores/useProductStore'
+import { useSalesStore } from '@/stores/useSalesStore'
 import {
   Bar,
   BarChart,
@@ -17,16 +19,45 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
 } from 'recharts'
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
-import { Package, DollarSign, Users, TrendingUp } from 'lucide-react'
+import { ChartContainer } from '@/components/ui/chart'
+import {
+  Package,
+  DollarSign,
+  Users,
+  TrendingUp,
+  ShoppingCart,
+} from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export default function Dashboard() {
-  const products = useProductStore((state) => state.products)
+  const { products, fetchProducts } = useProductStore()
+  const { sales, fetchSales, isLoading: isLoadingSales } = useSalesStore()
 
-  // Mock Data for Charts
+  useEffect(() => {
+    fetchProducts()
+    fetchSales()
+  }, [fetchProducts, fetchSales])
+
+  // Calculate Stats
+  const totalSalesAmount = sales
+    .filter((s) => s.status === 'paid' || s.status === 'approved')
+    .reduce((acc, curr) => acc + curr.amount, 0)
+
+  const uniqueCustomers = new Set(sales.map((s) => s.buyerEmail)).size
+
+  // Mock Data for Charts (mixed with real data logic if possible, but keeping simple for now)
+  // In a real app, we would aggregate `sales` by month
   const salesData = [
     { name: 'Jan', total: 1200 },
     { name: 'Fev', total: 2100 },
@@ -59,30 +90,58 @@ export default function Dashboard() {
 
   const stats = [
     {
-      title: 'Total de Produtos',
+      title: 'Total de Vendas',
+      value: `R$ ${totalSalesAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: DollarSign,
+      description: 'Receita total aprovada',
+    },
+    {
+      title: 'Produtos Ativos',
       value: products.length,
       icon: Package,
-      description: 'Livros cadastrados',
+      description: 'Livros no catálogo',
     },
     {
-      title: 'Vendas Mensais',
-      value: 'R$ 14.500',
-      icon: DollarSign,
-      description: '+12% em relação ao mês anterior',
-    },
-    {
-      title: 'Usuários Ativos',
-      value: '573',
+      title: 'Clientes Únicos',
+      value: uniqueCustomers,
       icon: Users,
-      description: '+201 novos usuários',
+      description: 'Compradores distintos',
     },
     {
-      title: 'Taxa de Conversão',
-      value: '3.2%',
-      icon: TrendingUp,
-      description: '+0.4% essa semana',
+      title: 'Transações',
+      value: sales.length,
+      icon: ShoppingCart,
+      description: 'Total de pedidos recebidos',
     },
   ]
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'approved':
+        return 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
+      case 'refunded':
+        return 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+      case 'pending':
+      case 'waiting_payment':
+        return 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20'
+      default:
+        return 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      paid: 'Pago',
+      approved: 'Aprovado',
+      refunded: 'Reembolsado',
+      chargedback: 'Chargeback',
+      pending: 'Pendente',
+      waiting_payment: 'Aguardando Pagamento',
+      refused: 'Recusado',
+    }
+    return map[status.toLowerCase()] || status
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -110,7 +169,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Vendas por Mês</CardTitle>
             <CardDescription>
-              Visão geral do faturamento semestral.
+              Visão geral do faturamento semestral (Simulado).
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
@@ -209,6 +268,77 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Sales Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Vendas Recentes</CardTitle>
+          <CardDescription>
+            Últimas transações processadas via Kiwify.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoadingSales ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    Carregando vendas...
+                  </TableCell>
+                </TableRow>
+              ) : sales.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    Nenhuma venda registrada ainda.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                sales.slice(0, 10).map((sale) => (
+                  <TableRow key={sale.id}>
+                    <TableCell>
+                      {format(new Date(sale.purchaseDate), 'dd/MM/yyyy HH:mm', {
+                        locale: ptBR,
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{sale.buyerName}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {sale.buyerEmail}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{sale.productName}</TableCell>
+                    <TableCell>
+                      <Badge
+                        className={getStatusColor(sale.status)}
+                        variant="outline"
+                      >
+                        {getStatusLabel(sale.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      R$ {sale.amount.toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }
