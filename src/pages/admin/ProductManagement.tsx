@@ -10,6 +10,7 @@ import {
   Loader2,
   Upload,
   Image as ImageIcon,
+  FileText,
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -64,6 +65,7 @@ const productSchema = z.object({
     .min(10, 'Descrição deve ter pelo menos 10 caracteres'),
   category: z.string().min(2, 'Categoria é obrigatória'),
   coverUrl: z.string().optional(),
+  fileUrl: z.string().optional(),
 })
 
 export default function ProductManagement() {
@@ -79,9 +81,15 @@ export default function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Cover Image State
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Book File State
+  const [selectedBookFile, setSelectedBookFile] = useState<File | null>(null)
+  const bookInputRef = useRef<HTMLInputElement>(null)
 
   // Ensure fetchProducts is only called once on mount
   useEffect(() => {
@@ -98,6 +106,7 @@ export default function ProductManagement() {
       description: '',
       category: '',
       coverUrl: '',
+      fileUrl: '',
     },
   })
 
@@ -118,6 +127,20 @@ export default function ProductManagement() {
     }
   }
 
+  const handleBookFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedBookFile(file)
+    }
+  }
+
+  const clearBookFile = () => {
+    setSelectedBookFile(null)
+    if (bookInputRef.current) {
+      bookInputRef.current.value = ''
+    }
+  }
+
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
     // Validate cover image presence
     if (!values.coverUrl && !selectedFile && !editingProduct) {
@@ -128,12 +151,25 @@ export default function ProductManagement() {
     setIsSubmitting(true)
     try {
       let finalCoverUrl = values.coverUrl
+      let finalFileUrl = values.fileUrl
 
+      // Upload Cover Image
       if (selectedFile) {
         try {
-          finalCoverUrl = await uploadService.uploadCover(selectedFile)
+          finalCoverUrl = await uploadService.uploadFile(selectedFile)
         } catch (error: any) {
-          toast.error(`Erro no upload: ${error.message}`)
+          toast.error(`Erro no upload da capa: ${error.message}`)
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      // Upload Book File
+      if (selectedBookFile) {
+        try {
+          finalFileUrl = await uploadService.uploadFile(selectedBookFile)
+        } catch (error: any) {
+          toast.error(`Erro no upload do arquivo: ${error.message}`)
           setIsSubmitting(false)
           return
         }
@@ -148,6 +184,7 @@ export default function ProductManagement() {
       const productData = {
         ...values,
         coverUrl: finalCoverUrl,
+        fileUrl: finalFileUrl,
       }
 
       if (editingProduct) {
@@ -162,6 +199,7 @@ export default function ProductManagement() {
       setEditingProduct(null)
       setSelectedFile(null)
       setPreviewUrl(null)
+      setSelectedBookFile(null)
     } catch (error) {
       // Error is handled in store
     } finally {
@@ -173,6 +211,7 @@ export default function ProductManagement() {
     setEditingProduct(product)
     setPreviewUrl(product.coverUrl)
     setSelectedFile(null)
+    setSelectedBookFile(null)
     form.reset({
       title: product.title,
       author: product.author,
@@ -180,6 +219,7 @@ export default function ProductManagement() {
       description: product.description,
       category: product.category,
       coverUrl: product.coverUrl,
+      fileUrl: product.fileUrl || '',
     })
     setIsDialogOpen(true)
   }
@@ -197,6 +237,7 @@ export default function ProductManagement() {
     setEditingProduct(null)
     setPreviewUrl(null)
     setSelectedFile(null)
+    setSelectedBookFile(null)
     form.reset({
       title: '',
       author: '',
@@ -204,6 +245,7 @@ export default function ProductManagement() {
       description: '',
       category: '',
       coverUrl: '',
+      fileUrl: '',
     })
     setIsDialogOpen(true)
   }
@@ -304,6 +346,7 @@ export default function ProductManagement() {
                   )}
                 />
 
+                {/* Cover Image Upload */}
                 <div className="space-y-2">
                   <FormLabel>Capa do Livro</FormLabel>
                   <div className="flex flex-col gap-4">
@@ -365,6 +408,61 @@ export default function ProductManagement() {
                           {form.formState.errors.coverUrl.message}
                         </p>
                       )}
+                  </div>
+                </div>
+
+                {/* Book File Upload */}
+                <div className="space-y-2">
+                  <FormLabel>Arquivo do Livro (PDF/EPUB)</FormLabel>
+                  <div className="flex flex-col gap-4">
+                    {(editingProduct?.fileUrl || selectedBookFile) && (
+                      <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="text-sm truncate flex-1">
+                          {selectedBookFile
+                            ? selectedBookFile.name
+                            : 'Arquivo atual disponível'}
+                        </span>
+                        {selectedBookFile && (
+                          <button type="button" onClick={clearBookFile}>
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => bookInputRef.current?.click()}
+                        className="w-full sm:w-auto"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {editingProduct?.fileUrl || selectedBookFile
+                          ? 'Alterar Arquivo'
+                          : 'Selecionar Arquivo'}
+                      </Button>
+                      <input
+                        type="file"
+                        ref={bookInputRef}
+                        className="hidden"
+                        accept=".pdf,.epub"
+                        onChange={handleBookFileChange}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="fileUrl"
+                      render={({ field }) => (
+                        <FormItem className="hidden">
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
 

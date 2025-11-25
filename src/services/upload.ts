@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabase/client'
 
 export const uploadService = {
-  async uploadCover(file: File): Promise<string> {
+  async uploadFile(file: File): Promise<string> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const { data, error } = await supabase.functions.invoke('storage-upload', {
+    const { data, error } = await supabase.functions.invoke('upload', {
       body: formData,
     })
 
@@ -16,7 +16,7 @@ export const uploadService = {
 
     if (data?.error) {
       console.error('Upload error:', data.error)
-      throw new Error(data.error || 'Erro ao fazer upload da imagem.')
+      throw new Error(data.error || 'Erro ao fazer upload do arquivo.')
     }
 
     return data.url
